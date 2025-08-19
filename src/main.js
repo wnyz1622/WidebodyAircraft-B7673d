@@ -186,10 +186,9 @@ class HotspotManager {
         this.outlineEffect = new OutlineEffect(this.scene, this.camera, {
             selection: [],
             blendFunction: BlendFunction.ALPHA,
-            edgeStrength: 2,
+            edgeStrength: 1,
             pulseSpeed: 0.0,
-            visibleEdgeColor: new THREE.Color('#ef5337'), // Start transparent
-            hiddenEdgeColor: new THREE.Color('#ef5337'),
+            visibleEdgeColor: new THREE.Color('#2873F5'), // Start transparent
             multisampling: 4,
             // resolution: {
             //     // width: window.innerWidth * Math.min(window.devicePixelRatio, 2),
@@ -790,7 +789,7 @@ class HotspotManager {
 
             if (meshesToSelect.length > 0) {
                 this.outlineEffect.selection.set(meshesToSelect);
-                this.animateOutlineEdgeStrength(0, 5, 1500);
+                this.animateOutlineEdgeStrength(0, 3, 1500);
                 console.log('✔ Outline applied to:', meshesToSelect.map(m => m.name));
             } else {
                 console.warn('❌ No mesh found to apply outline for:', hotspotData.node);
