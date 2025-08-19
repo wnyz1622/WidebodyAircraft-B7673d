@@ -1,98 +1,248 @@
 [
   {
-    "node": "01_Chassis",
-    "title": "Chassis",
-    "camera": "Cam_01_Chassis",
-    "description": "The steel framework of the vehicle.  Two steerable drive wheels are located at the front, and four wheels support the rear of the chassis."
+    "node": "01_Fuselage",
+    "title": "Fuselage",
+    "camera": "Cam_01_Fuselage",
+    "type": "callout",
+    "description": "Body of the aircraft"
   },
   {
-    "node": "02_Bridge",
-    "title": "Bridge",
-    "camera": "Cam_02_Bridge",
-    "description": "The bridge is raised and lowered via scissors assembly lifts.  Cargo can be moved fore and aft, and side to side on the bridge."
+    "node": "02_NoseLandingGearDoors",
+    "title": "Nose Landing Gear Doors",
+    "camera": "Cam_02_NoseLandingGearDoors",
+    "type": "callout",
+    "description": "Nose landing gear doors (Potential head Injury)"
   },
   {
-    "node": "03_Operator'sCab",
-    "title": "Operator's Cab",
-    "camera": "Cam_03_OperatorsCab",
-    "description": "The operator's cab contains the control units for driving the vehicle and transfering cargo."
+    "node": "03_NoseLandingGear",
+    "title": "Nose Landing Gear",
+    "camera": "Cam_03_NoseLandingGear",
+    "type": "callout",
+    "description": "Nose Landing Gear (NLG)"
   },
   {
-    "node": "04_Platform",
-    "title": "Platform",
-    "camera": "Cam_04_Platform",
-    "description": "The platform is supported by a scissors assembly, and is raised/lowered by hydraulic cylinders.  The configuration of the platform determines the layout of the rollers."
+    "node": "04_GPUAccessPanel",
+    "title": "GPU Access Panel",
+    "camera": "Cam_04_GPUAccessPanel",
+    "type": "callout",
+    "description": "Panel where the Ground Powered Unit is connected while being serviced (exterior search)"
   },
   {
-    "node": "05_ExtensionDeck_Optional",
-    "title": "Extension Deck (Optional)",
-    "camera": "Cam_05_ExtensionDeck_Optional",
-    "description": "The extension deck is an extra platform that can mechanically attach to the rear of the loader."
+    "node": "05_AntiCollisionBeaconTop",
+    "title": "Anti Collision Beacon (Top)",
+    "camera": "Cam_05_AntiCollisionBeaconTop",
+    "type": "callout",
+    "description": "Beacon indicates the aircraft is moving or movement is eminent. Also means that the engines are running or about to start."
   },
   {
-    "node": "06_UnderPlatformCamera",
-    "title": "Under Platform Camera",
-    "camera": "Cam_06_UnderPlatformCamera",
-    "description": "This is an optional component that allows the operator to oversee activity underneath the platform.  A display screen is located on the same side as the operator's panel."
+    "node": "06_CargoHandlingSystemControlAccessPanelForward",
+    "title": "CargoHandling System Control Access Panel Forward",
+    "camera": "Cam_06_CargoHandlingSystemControlAccessPanelForward",
+    "type": "callout",
+    "description": "Access panel for the forward cargo handling system control panel"
   },
   {
-    "node": "07_PowerModule",
-    "title": "Power Module",
-    "camera": "Cam_07_PowerModule",
-    "description": "The power module can be found at the front of the loader, on the right side.  Controls and indicators can be found on the right-hand side of the module."
+    "node": "07_ForwardCargoDoorControlAccessPanel",
+    "title": "Forward Carg oDoor Control Access Panel",
+    "camera": "Cam_07_ForwardCargoDoorControlAccessPanel",
+    "type": "callout",
+    "description": "Access panel for the forward cargo door operation control (exterior search)"
   },
   {
-    "node": "08_MainControlPanel",
-    "title": "Main Control Panel (Diesel vs Electric)",
-    "camera": "Cam_08_MainControlPanel",
-    "description": "Includes panel lights, hour meter, fault indicators, a manual override switch, and general system gauges which allow the operator to oversee the general state of the vehicle."
+    "node": "08_CargoDoorLatchForward",
+    "title": "Cargo Door Latch Forward",
+    "camera": "Cam_08_CargoDoorLatchForward",
+    "type": "callout",
+    "description": "Used to seal the door after closing and vent the door before opening"
   },
   {
-    "node": "09_SupervisorKeyResetPanel",
-    "title": "Supervisor Key Reset Panel",
-    "camera": "Cam_09_SupervisorKeyResetPanel",
-    "description": "This is an optional add-on to the APD system.  It can be located below the main control panel of the power module."
+    "node": "09_ForwardCargoDoor",
+    "title": "Forward Cargo Door",
+    "camera": "Cam_09_ForwardCargoDoor",
+    "type": "callout",
+    "description": "Forward cargo door (click on blue door icon to open and close)"
   },
   {
-    "node": "10_HydraulicSystem",
-    "title": "Hydraulic System",
-    "camera": "Cam_10_HydraulicSystem",
-    "description": "This helps control the hydraulic power of the cargo transfer, bridge & platform height, proportional propulsion, steering and braking, and successful load stops."
+    "node": "10_CargoLocksFwd",
+    "title": "Cargo Locks Fwd",
+    "camera": "Cam_10_CargoLocksFwd",
+    "type": "callout",
+    "description": "Cargo locks ensure that ULD untied remain secure in the hold after loading"
   },
   {
-    "node": "11_ElectricalSystem",
-    "title": "Electrical System",
-    "camera": "Cam_11_ElectricalSystem",
-    "description": "Operates on 24 volts, and supplies power to all components of the cargo loader."
+    "node": "11_EngineRight",
+    "title": "Engine Right",
+    "camera": "Cam_11_EngineRight",
+    "type": "callout",
+    "description": "Right side, first office side, is also referred to as #2"
   },
   {
-    "node": "12_AircraftProximityDetector",
-    "title": "Aircraft Proximity Detector (ADP)",
-    "camera": "Cam_12_AircraftProximityDetector",
-    "description": "The APD uses a radar system (on the front and sides of the vehicle) to detect the loader's proximity to the plane.  When a threshold is crossed, the APD activates.  Includes components like an E-Stop button, a hand throttle, and APD override switch, and indicator lights."
+    "node": "12_EngineCowlRight",
+    "title": "Engine Cowl Right",
+    "camera": "Cam_12_EngineCowlRight",
+    "type": "callout",
+    "description": "Outer encasement of each engine"
   },
   {
-    "node": "13_DriversConsole",
-    "title": "Driver's Console",
-    "camera": "Cam_13_DriversConsole",
-    "description": "The driver's console includes the operator & driver control panels, acceleration/brake pedals, emergency stop switch, emergency pump switch, horn switch, manual cab lock, and turn signal lever switch."
+    "node": "13_WingBottomAccessPanelsDeflectorsRight",
+    "title": "Wing Bottom Access Panels Deflectors Right",
+    "camera": "Cam_13_WingBottomAccessPanelsDeflectorsRight",
+    "type": "callout",
+    "description": "For fueling access"
   },
   {
-    "node": "14_DriversPanelControls",
-    "title": "Driver's Panel Controls",
-    "camera": "Cam_14_DriversPanelControls",
-    "description": "Includes several guages and switches, including:\nFuel level indicators, battery level indicators (for electric loaders), power switches, mode switches, and other indicators."
+    "node": "14_MainLandingGearDoorsRight",
+    "title": "Main Landing Gear Doors Right",
+    "camera": "Cam_14_MainLandingGearDoorsRight",
+    "type": "callout",
+    "description": "Main landing gear doors"
   },
   {
-    "node": "15_OperatorsControlPanel",
-    "title": "Operator's Control Panel",
-    "camera": "Cam_15_OperatorsControlPanel",
-    "description": "Includes fault lights, rotation & lift switches, and platform control joysticks."
+    "node": "15_MainLandingGearRight",
+    "title": "Main Landing Gear Right",
+    "camera": "Cam_15_MainLandingGearRight",
+    "type": "callout",
+    "description": "Main Landing Gear (MLG)"
   },
   {
-    "node": "16_ExtensionDeckControlPanel",
-    "title": "Extension Deck Control Panel",
-    "camera": "Cam_16_ExtensionDeckControlPanel",
-    "description": "Allows operator to control the conveys and rear stabilizers.  Warning lights will notify the operator if the convey system is faulty or if the stabilizers are not retracted properly."
+    "node": "16_CargoHandlingSystemControlAccessPanelAft",
+    "title": "CargoHandling System Control Access Panel Aft",
+    "camera": "Cam_16_CargoHandlingSystemControlAccessPanelAft",
+    "type": "callout",
+    "description": "Access panel for the aft cargo handling system control panel"
+  },
+  {
+    "node": "17_CargoDoorControlPanelAft",
+    "title": "Cargo Door Control Panel Aft",
+    "camera": "Cam_17_CargoDoorControlPanelAft",
+    "type": "callout",
+    "description": "Access panel for the aft cargo door operation control (exterior search)"
+  },
+
+  {
+    "node": "19_AftCargoDoor",
+    "title": "Aft Cargo Door",
+    "camera": "Cam_19_AftCargoDoor",
+    "type": "callout",
+    "description": "Aft cargo door (click on blue door icon to open and close)"
+  },
+  {
+    "node": "20_PitNetsAft",
+    "title": "Pit Nets Aft",
+    "camera": "Cam_20_PitNetsAft",
+    "type": "callout",
+    "description": "All pit nets must be in place before departure, even if the pit is empty."
+  },
+  {
+    "node": "21_CargoLocksAft",
+    "title": "Cargo Locks Aft",
+    "camera": "Cam_21_CargoLocksAft",
+    "type": "callout",
+    "description": "Cargo locks ensure that ULD untied remain secure in the hold after loading"
+  },
+  {
+    "node": "22_PotableWaterAccessPanel",
+    "title": "Potable Water Access Panel",
+    "camera": "Cam_22_PotableWaterAccessPanel",
+    "type": "callout",
+    "description": "Potable water access panel (exterior search only)"
+  },
+  {
+    "node": "23_PneumaticAirstartPanels",
+    "title": "Pneumatic Airstart Panels",
+    "camera": "Cam_23_PneumaticAirstartPanels",
+    "type": "callout",
+    "description": "Access panel to connect the Pneumatic airstart (exterior search)"
+  },
+  {
+    "node": "24_PCAirAccessPanel",
+    "title": "PC Air Access Panel",
+    "camera": "Cam_24_PCAirAccessPanel",
+    "type": "callout",
+    "description": "Panels where PC Air is attached while being serviced (exterior search)"
+  },
+  {
+    "node": "25_AntiCollisionBeaconBottom",
+    "title": "Anti Collision Beacon (Bottom)",
+    "camera": "Cam_25_AntiCollisionBeaconBottom",
+    "type": "callout",
+    "description": "Beacon indicates the aircraft is moving or movement is eminent. Also means that the engines are running or about to start."
+  },
+  {
+    "node": "26_BulkPitCargoDoorHandle",
+    "title": "Bulk Pit Cargo Door Handle",
+    "camera": "Cam_26_BulkPitCargoDoorHandle",
+    "type": "callout",
+    "description": "Used to open and close the door of the bulk pit"
+  },
+  {
+    "node": "27_BulkPitCargoDoor",
+    "title": "Bulk Pit Cargo Door",
+    "camera": "Cam_27_BulkPitCargoDoor",
+    "type": "callout",
+    "description": "Bulk pit cargo compartment door"
+  },
+  {
+    "node": "28_MainLandingGearDoorsLeft",
+    "title": "Main Landing Gear Doors Left",
+    "camera": "Cam_28_MainLandingGearDoorsLeft",
+    "type": "callout",
+    "description": "Main landing gear doors"
+  },
+  {
+    "node": "29_MainLandingGearLeft",
+    "title": "Main Landing Gear Left",
+    "camera": "Cam_29_MainLandingGearLeft",
+    "type": "callout",
+    "description": "Main Landing Gear (MLG)"
+  },
+  {
+    "node": "30_EngineLeft",
+    "title": "Engine Left",
+    "camera": "Cam_30_EngineLeft",
+    "type": "callout",
+    "description": "Left side, captain side, is also referred to as #1"
+  },
+  {
+    "node": "31_EngineCowlLeft",
+    "title": "Engine Cowl Left",
+    "camera": "Cam_31_EngineCowlLeft",
+    "type": "callout",
+    "description": "Outer encasement of each engine"
+  },
+  {
+    "node": "32_WingBottomAccessPanelsDeflectorsLeft",
+    "title": "Wing Bottom Access Panels Deflectors Left",
+    "camera": "Cam_32_WingBottomAccessPanelsDeflectorsLeft",
+    "type": "callout",
+    "description": "For fueling access"
+  },
+  {
+    "node": "33_FlightDeckCommunicationsPanel",
+    "title": "Flight Deck Communications Panel",
+    "camera": "Cam_33_FlightDeckCommunicationsPanel",
+    "type": "callout",
+    "description": "Access panel for connections to GPU, flight deck call button and communication headset. Interphone jack is located on the reverse side of nose gear."
+  },
+  {
+    "node": "07_ForwardCargoDoorControlAccessPanel_open",
+    "camera": "Cam_07_ForwardCargoDoorControlAccessPanel",
+    "type": "animation"
+  },
+  {
+    "node": "09_ForwardCargoDoor_open",
+    "camera": "Cam_09_ForwardCargoDoor",
+    "type": "animation"
+  },
+  {
+    "node": "17_CargoDoorControlPanelAft_open",
+    "camera": "Cam_17_CargoDoorControlPanelAft",
+    "type": "animation"
+  },
+  {
+    "node": "19_AftCargoDoor_open",
+    "camera": "Cam_19_AftCargoDoor",
+    "type": "animation"
   }
+
 ]

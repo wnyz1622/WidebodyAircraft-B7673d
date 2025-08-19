@@ -24,6 +24,8 @@ window.addEventListener('unhandledrejection', (e) => {
     console.error('💥 PROMISE CRASH:', e.reason);
     alert('PROMISE ERROR: ' + e.reason);
 });
+//force rebuild
+console.log('App loaded:', new Date().toISOString());
 class HotspotManager {
     constructor() {
         this.init();
@@ -65,6 +67,9 @@ class HotspotManager {
         this.controlsChanged = true;
         this.lastCameraPosition = new THREE.Vector3();
         this.lastCameraQuaternion = new THREE.Quaternion();
+
+        this.hasLoggedRendererInfo = false;
+
     }
 
     async init() {
@@ -110,8 +115,8 @@ class HotspotManager {
         this.camera.position.set(0, 0, 0);
         this.camera.lookAt(0, 0, 0);
         //this.camera.setFocalLength(50);
-        
-        
+
+
         // Create renderer
         this.renderer = new WebGLRenderer({
             powerPreference: "high-performance",
@@ -127,8 +132,8 @@ class HotspotManager {
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.getElementById('container').appendChild(this.renderer.domElement);
-          
-        
+
+
 
         // Add WebGL context loss handler
         this.renderer.domElement.addEventListener('webglcontextlost', (event) => {
@@ -141,13 +146,13 @@ class HotspotManager {
         rightArrow.src = 'media/MouseControl.svg'; // adjust path if needed
         rightArrow.id = 'mouse-control';
         document.body.appendChild(rightArrow);
-        
+
         // 🔆 Enable tone mapping and adjust exposure
         this.renderer.toneMapping = THREE.LinearToneMapping; // or THREE.ReinhardToneMapping
         this.renderer.toneMappingExposure = 0.95; // adjust brightness here (try 1.2–2.0)
         this.renderer.outputEncoding = SRGBColorSpace;
         this.renderer.toneMapping = THREE.LinearToneMapping;
-        
+
 
         // Add lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -155,7 +160,7 @@ class HotspotManager {
 
         const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
         directionalLight.position.set(0, 10, 0);
-        directionalLight.intensity = 1.75; // more shadow strength
+        directionalLight.intensity = 1; // more shadow strength
         directionalLight.castShadow = true;
 
         // Add these shadow properties
@@ -191,7 +196,7 @@ class HotspotManager {
             //     // height: window.innerHeight * Math.min(window.devicePixelRatio, 2)
             // },
             resolution: { width: window.innerWidth / 2, height: window.innerHeight / 2 },
-            
+
             xRay: false,
             // Edge detection settings
             patternTexture: null,
@@ -210,7 +215,7 @@ class HotspotManager {
         this.composer.addPass(effectPass);
 
         // Add floor disc
-        const floorGeometry = new THREE.CircleGeometry(8, 48);
+        const floorGeometry = new THREE.CircleGeometry(30, 48);
         const floorMaterial = new THREE.MeshStandardMaterial({
             color: 0xbbbbbb,
             transparent: true,
@@ -221,7 +226,7 @@ class HotspotManager {
         });
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
         floor.rotation.x = -Math.PI / 2; // Rotate to be horizontal
-        floor.position.y = -2.5; // Position lower below the model
+        floor.position.y = -7.8; // Position lower below the model
         floor.position.z = 0;
         floor.position.x = 0;
         floor.receiveShadow = true;
@@ -239,17 +244,17 @@ class HotspotManager {
 
         // Set orbit boundaries
         this.controls.minDistance = 0.1; // Minimum zoom distance
-        this.controls.maxDistance = 12; // Maximum zoom distance
+        this.controls.maxDistance = 40; // Maximum zoom distance
         this.controls.minPolarAngle = Math.PI / 6; // Minimum vertical angle (30 degrees)
-        this.controls.maxPolarAngle = Math.PI / 2; // Maximum vertical angle (120 degrees)
+        this.controls.maxPolarAngle = Math.PI; // Maximum vertical angle (120 degrees)
         // this.controls.minAzimuthAngle = -Math.PI; // Allow full 360 rotation
         //this.controls.maxAzimuthAngle = Math.PI;
         this.controls.enablePan = true; // Disable panning to keep focus on the model
-        this.controls.target.y = -2.5; // Keep the orbit target at floor level
+        this.controls.target.y = -7.8; // Keep the orbit target at floor level
         // Keep target from going below floor
         this.controls.addEventListener('change', () => {
-            if (this.controls.target.y < -2.5) {
-                this.controls.target.y = -2.5;
+            if (this.controls.target.y < -7.8) {
+                this.controls.target.y = -7.8;
             }
         });
         // Track camera/controls changes for hotspot update
@@ -291,9 +296,9 @@ class HotspotManager {
             }, 100);
         });
         this.setupFullscreenButton();
-        this.setupTechSpecToggle();
+        // this.setupTechSpecToggle();
         this.setupResetButton();
-        this.setupPDFButton();
+        // this.setupPDFButton();
 
         //test outliene box
         // const test = new THREE.Mesh(
@@ -304,7 +309,7 @@ class HotspotManager {
         // this.outlineEffect.selection.set([test]);
         this.stats = new Stats();
         //hide fps on screen
-        //document.body.appendChild(this.stats.dom);
+        document.body.appendChild(this.stats.dom);
         // Start animation loop
         this.clock = new THREE.Clock();
         this.animate();
@@ -351,7 +356,7 @@ class HotspotManager {
             };
 
 
-            const modelPath = 'media/model/CargoLoader_v2.glb';
+            const modelPath = 'media/model/B767_v2.glb';
             console.log('Loading model from:', modelPath);
 
             // this.loader.load(modelPath, (gltf) => {
@@ -424,6 +429,10 @@ class HotspotManager {
                         if (node.isMesh || node.isObject3D) {
                             const position = new THREE.Vector3();
                             node.getWorldPosition(position);
+                            node.frustumCulled = true; 
+                            if (node.geometry && !node.geometry.boundingSphere) {
+                                node.geometry.computeBoundingSphere();
+                              }
                             nodePositions[node.name] = {
                                 name: node.name,
                                 type: node.type,
@@ -478,6 +487,14 @@ class HotspotManager {
 
                     this.scene.add(this.model);
 
+                    // Hide all "_open" / ".open" nodes by default so doors start CLOSED
+                    this.model.traverse(o => {
+                        if (!o || !o.name) return;
+                        if (/(\.|_)open$/i.test(o.name)) o.visible = false;  // hide "open"
+                        // don't force "close" visible here; base/closed nodes are already visible by default
+                    });
+
+
                     // Set texture filtering for all textures in model materials
                     this.model.traverse((node) => {
                         if (node.isMesh && node.material) {
@@ -525,22 +542,24 @@ class HotspotManager {
                     let cameraZ = Math.abs(maxDim / Math.tan(fov / 2));
                     // Enforce a comfortable default reset distance (e.g., z=2)
                     const defaultResetDistance = 5; // Between minDistance (0.1) and maxDistance (25)
-                    this.camera.position.set(10, 0, 6);
-                    this.camera.lookAt(0.2, 0, 0);
+                    this.camera.position.set(34.5, 2.5, 23);
+                    this.camera.lookAt(0, 0, 0);
                     this.camera.updateProjectionMatrix();
-                    this.initialCameraPosition = new THREE.Vector3(10, 0, 6);
-                    this.initialCameraTarget = new THREE.Vector3(0.2, 0, 0);
+                    this.initialCameraPosition = new THREE.Vector3(34.5, 2.5, 23);
+                    this.initialCameraTarget = new THREE.Vector3(0, 0, 0);
+
                     //help see what camera position is good and set that above 
                     // this.controls.addEventListener('change', () => {
                     //     console.log('📸 Camera Position:', this.camera.position);
                     //     console.log('🎯 Camera Rotation:', this.camera.rotation);
                     // });
+
                     // Set orbit controls target to model center (orbit mode)
                     this.controls.target.set(0, 0, 0);
                     this.controls.update();
                     // Create hotspots after model is loaded
                     this.createDefaultHotspots();
-                    
+
                     // In the model loading section, add this after loading the model:
                     this.model.traverse((node) => {
                         if (node.isMesh) {
@@ -597,6 +616,90 @@ class HotspotManager {
     }
 
     handleHotspotClick(hotspot) {
+
+        // Toggle OPEN/CLOSE nodes for animation-type hotspots (no real animation)
+        if (hotspot.data.type === 'animation') {
+            const base = this.normalizeBase(hotspot.data.node);
+            const { openNode, closeNode } = this.getDoorNodes(base);
+
+            if (openNode && closeNode) {
+                const willOpen = !openNode.visible;
+                openNode.visible = willOpen;
+                closeNode.visible = !willOpen;
+            } else {
+                console.warn(`Door nodes not found for base: ${base}`, { openNode, closeNode });
+            }
+        }
+
+        //*** NEW: Handle PitNets special case ***
+        //*** Handle Aft Cargo Door (PitNets and CargoLocksAft) ***
+        if (hotspot.data.node === "20_PitNetsAft" || hotspot.data.node === "21_CargoLocksAft") {
+            // Get the aft cargo door nodes
+            const aftDoorBase = "19_AftCargoDoor";
+            const { openNode: aftOpenNode, closeNode: aftCloseNode } = this.getDoorNodes(aftDoorBase);
+
+            // Get the cargo locks node to hide
+            const cargoAftFwdNode = this.scene.getObjectByName("18_CargoDoorLatchAft");
+
+            if (aftOpenNode && aftCloseNode) {
+                // Show open door, hide closed door
+                aftOpenNode.visible = true;
+                aftCloseNode.visible = false;
+
+                // Hide the cargo locks
+                if (cargoAftFwdNode) {
+                    cargoAftFwdNode.visible = false;
+                }
+
+                console.log("✅ PitNets & CargoLocksAft: Opened aft cargo door and hid locks");
+            } else {
+                console.warn("❌ PitNets & CargoLocksAft: Could not find aft cargo door nodes", { aftOpenNode, aftCloseNode });
+            }
+        }
+
+        //*** Handle Forward Cargo Door (CargoLocksFwd) ***
+        if (hotspot.data.node === "10_CargoLocksFwd") {
+            // Get the forward cargo door nodes
+            const fwdDoorBase = "09_ForwardCargoDoor";
+            const { openNode: fwdOpenNode, closeNode: fwdCloseNode } = this.getDoorNodes(fwdDoorBase);
+
+            // Get the latch node to hide
+            const cargoLatchFwdNode = this.scene.getObjectByName("08_CargoDoorLatchForward");
+
+            if (fwdOpenNode && fwdCloseNode) {
+                // Show open door, hide closed door
+                fwdOpenNode.visible = true;
+                fwdCloseNode.visible = false;
+
+                // Hide the latch
+                if (cargoLatchFwdNode) {
+                    cargoLatchFwdNode.visible = false;
+                }
+
+                console.log("✅ CargoLocksFwd: Opened forward cargo door and hid latch");
+            } else {
+                console.warn("❌ CargoLocksFwd: Could not find forward cargo door nodes", { fwdOpenNode, fwdCloseNode });
+            }
+        }
+
+        //*** General Latch Visibility Logic ***
+        // Handle aft cargo door latch visibility
+        const aftDoorNodes = this.getDoorNodes("19_AftCargoDoor");
+        const aftLatchNode = this.scene.getObjectByName("18_CargoDoorLatchAft");
+        if (aftDoorNodes.openNode && aftDoorNodes.closeNode && aftLatchNode) {
+            // If aft door is open, hide latch; if closed, show latch
+            aftLatchNode.visible = aftDoorNodes.closeNode.visible;
+        }
+
+        // Handle forward cargo door latch visibility  
+        const fwdDoorNodes = this.getDoorNodes("09_ForwardCargoDoor");
+        const fwdLatchNode = this.scene.getObjectByName("08_CargoDoorLatchForward");
+        if (fwdDoorNodes.openNode && fwdDoorNodes.closeNode && fwdLatchNode) {
+            // If forward door is open, hide latch; if closed, show latch
+            fwdLatchNode.visible = fwdDoorNodes.closeNode.visible;
+        }
+
+
         const hotspotData = hotspot.data;
 
         // Deselect previous
@@ -619,12 +722,19 @@ class HotspotManager {
             ? `url('media/door_selected.png')`
             : `url('media/Info_Selected.png')`;
 
-        // ✅ Always show the info panel, including description
-        hotspot.info.style.display = 'block';
-        hotspot.info.classList.add('active');
+        // 🚫 Don’t show panel for animation hotspots
+        if (hotspotData.type !== 'animation') {
+            hotspot.info.style.display = 'block';
+            hotspot.info.classList.add('active');
+        } else {
+            hotspot.info.style.display = 'none';
+            hotspot.info.classList.remove('active');
+        }
+
 
         // 🔁 Move to predefined camera position if available
-        const cameraNode = this.gltf.scene.getObjectByName('Cam_' + hotspotData.node);
+        const cameraNode = this.getCameraNode('Cam_' + hotspotData.node);
+
         const hotspotNode = this.model.getObjectByName(hotspotData.node);
         if (cameraNode && cameraNode.isCamera && hotspotNode) {
             const endPos = new THREE.Vector3();
@@ -652,23 +762,32 @@ class HotspotManager {
             this.moveToHotspotView(hotspot);
         }
         //outline seleected mesh
-        const meshToOutline = this.model.getObjectByName(hotspotData.node);
+        let meshToOutline = this.model.getObjectByName(hotspotData.node);
+        // If it's an animation door, outline the visible state (open or closed)
+        if (hotspotData.type === 'animation') {
+            const base = this.normalizeBase(hotspotData.node);
+            const { openNode, closeNode } = this.getDoorNodes(base);
+            meshToOutline = (openNode && openNode.visible) ? openNode
+                : (closeNode && closeNode.visible) ? closeNode
+                    : meshToOutline;
+        }
+
 
         if (meshToOutline) {
             const meshesToSelect = [];
-        
+
             // If the node is a group or has children, traverse it
             meshToOutline.traverse((child) => {
                 if (child.isMesh) {
                     meshesToSelect.push(child);
                 }
             });
-        
+
             // If it is a single mesh with multiple materials, still push it
             if (meshToOutline.isMesh && meshesToSelect.length === 0) {
                 meshesToSelect.push(meshToOutline);
             }
-        
+
             if (meshesToSelect.length > 0) {
                 this.outlineEffect.selection.set(meshesToSelect);
                 this.animateOutlineEdgeStrength(0, 5, 1500);
@@ -688,12 +807,38 @@ class HotspotManager {
         }
     }
 
+    // ---- Door helpers (Base + Base_open) ----
+    normalizeBase(name) {
+        // remove trailing .open/.close OR _open/_close if they ever appear
+        return (name || '').replace(/(\.|_)(open|close)$/i, '');
+    }
+    getDoorNodes(base) {
+        // CLOSED: Base
+        const closeNode = this.model.getObjectByName(base)
+            || this.model.getObjectByName(`${base}.close`)
+            || this.model.getObjectByName(`${base}_close`);
+        // OPEN: Base_open (primary), with dot fallback
+        const openNode = this.model.getObjectByName(`${base}_open`)
+            || this.model.getObjectByName(`${base}.open`);
+        return { openNode, closeNode };
+    }
+    // Camera finder that tolerates _open/_close suffix in JSON
+    getCameraNode(camName) {
+        let cam = this.model.getObjectByName(camName);
+        if (cam) return cam;
+        const fallback = (camName || '').replace(/_(open|close)$/i, '');
+        return this.model.getObjectByName(fallback) || null;
+    }
+
     async createDefaultHotspots() {
         const response = await fetch('hotspots.json');
         const hotspotDataList = await response.json();
 
         // Store the full list of hotspots for navigation
-        this.allHotspots = hotspotDataList.filter(h => h.type !== 'camera');
+        // exclude both "camera" and "animation" from arrow navigation
+        this.allHotspots = hotspotDataList.filter(h => h.type !== 'camera' && h.type !== 'animation');
+
+
 
         // 🔎 Filter camera hotspots from JSON
         const cameraHotspots = hotspotDataList.filter(h => h.type === 'camera');
@@ -924,7 +1069,9 @@ class HotspotManager {
                         : `url('media/Info_Selected.png')`;
                 }
 
-                infoDiv.style.display = 'block';
+                if (hotspotData.type !== 'animation') {
+                    infoDiv.style.display = 'block';
+                }
             });
 
             hotspotDiv.addEventListener('mouseleave', () => {
@@ -947,6 +1094,20 @@ class HotspotManager {
                 }
             });
         });
+        // === Initialize door states for animation-type hotspots (Base + Base_open) ===
+        // Start all door/animation hotspots CLOSED
+        this.allHotspots
+            .filter(h => h.type === 'animation')
+            .forEach(h => {
+                const base = (h.node || '').replace(/(\.|_)open$/i, ''); // "XX_Y_open" -> "XX_Y"
+                const openNode = this.model.getObjectByName(`${base}_open`) || this.model.getObjectByName(`${base}.open`);
+                const closeNode = this.model.getObjectByName(base) || this.model.getObjectByName(`${base}.close`) || this.model.getObjectByName(`${base}_close`);
+                if (openNode) openNode.visible = false;
+                if (closeNode) closeNode.visible = true;
+            });
+
+
+
         // Ensure hotspots are visible by default after all are created
         this.cameraChanged = false;
         this.controlsChanged = true;
@@ -964,37 +1125,37 @@ class HotspotManager {
         }
     }
 
-    switchToNamedCamera(cameraName) {
-        const camNode = this.namedCameras?.[cameraName];
-        if (!camNode) {
-            console.warn(`Camera '${cameraName}' not found.`);
-            return;
-        }
+    // switchToNamedCamera(cameraName) {
+    //     const camNode = this.namedCameras?.[cameraName];
+    //     if (!camNode) {
+    //         console.warn(`Camera '${cameraName}' not found.`);
+    //         return;
+    //     }
 
-        const startPos = this.camera.position.clone();
-        const startQuat = this.camera.quaternion.clone();
-        const targetPos = camNode.position.clone();
-        const targetQuat = camNode.quaternion.clone();
+    //     const startPos = this.camera.position.clone();
+    //     const startQuat = this.camera.quaternion.clone();
+    //     const targetPos = camNode.position.clone();
+    //     const targetQuat = camNode.quaternion.clone();
 
-        const startTime = Date.now();
-        const duration = 1500;
+    //     const startTime = Date.now();
+    //     const duration = 1500;
 
-        const animateSwitch = () => {
-            const elapsed = Date.now() - startTime;
-            const t = Math.min(elapsed / duration, 1);
-            const ease = 1 - Math.pow(1 - t, 4);
+    //     const animateSwitch = () => {
+    //         const elapsed = Date.now() - startTime;
+    //         const t = Math.min(elapsed / duration, 1);
+    //         const ease = 1 - Math.pow(1 - t, 4);
 
-            this.camera.position.lerpVectors(startPos, targetPos, ease);
-            this.camera.quaternion.slerpQuaternions(startQuat, targetQuat, ease);
+    //         this.camera.position.lerpVectors(startPos, targetPos, ease);
+    //         this.camera.quaternion.slerpQuaternions(startQuat, targetQuat, ease);
 
-            this.controls.target.set(0, 0, 0); // optionally modify
-            this.controls.update();
+    //         this.controls.target.set(0, 0, 0); // optionally modify
+    //         this.controls.update();
 
-            if (t < 1) requestAnimationFrame(animateSwitch);
-        };
+    //         if (t < 1) requestAnimationFrame(animateSwitch);
+    //     };
 
-        animateSwitch();
-    }
+    //     animateSwitch();
+    // }
 
     applyMaterialVariant(variantName) {
         if (!this.gltf || !variantName) return;
@@ -1054,34 +1215,34 @@ class HotspotManager {
         }
     }
 
-    moveCameraTo(positionArray, quaternionArray) {
-        const startPos = this.camera.position.clone();
-        const startQuat = this.camera.quaternion.clone();
+    // moveCameraTo(positionArray, quaternionArray) {
+    //     const startPos = this.camera.position.clone();
+    //     const startQuat = this.camera.quaternion.clone();
 
-        const targetPos = new THREE.Vector3().fromArray(positionArray);
-        const targetQuat = new THREE.Quaternion().fromArray(quaternionArray);
+    //     const targetPos = new THREE.Vector3().fromArray(positionArray);
+    //     const targetQuat = new THREE.Quaternion().fromArray(quaternionArray);
 
-        const startTarget = this.controls.target.clone();
-        const endTarget = new THREE.Vector3(0, 0, -1).applyQuaternion(targetQuat).add(targetPos);
+    //     const startTarget = this.controls.target.clone();
+    //     const endTarget = new THREE.Vector3(0, 0, -1).applyQuaternion(targetQuat).add(targetPos);
 
-        const duration = 1000;
-        const startTime = Date.now();
+    //     const duration = 1000;
+    //     const startTime = Date.now();
 
-        const animate = () => {
-            const elapsed = Date.now() - startTime;
-            const t = Math.min(elapsed / duration, 1);
-            const ease = 1 - Math.pow(1 - t, 4);
+    //     const animate = () => {
+    //         const elapsed = Date.now() - startTime;
+    //         const t = Math.min(elapsed / duration, 1);
+    //         const ease = 1 - Math.pow(1 - t, 4);
 
-            this.camera.position.lerpVectors(startPos, targetPos, ease);
-            this.camera.quaternion.slerpQuaternions(startQuat, targetQuat, ease);
-            this.controls.target.lerpVectors(startTarget, endTarget, ease);
-            this.controls.update();
+    //         this.camera.position.lerpVectors(startPos, targetPos, ease);
+    //         this.camera.quaternion.slerpQuaternions(startQuat, targetQuat, ease);
+    //         this.controls.target.lerpVectors(startTarget, endTarget, ease);
+    //         this.controls.update();
 
-            if (t < 1) requestAnimationFrame(animate);
-        };
+    //         if (t < 1) requestAnimationFrame(animate);
+    //     };
 
-        animate();
-    }
+    //     animate();
+    // }
 
     updateHotspotPositions() {
         if (!this.hotspots) return;
@@ -1102,42 +1263,50 @@ class HotspotManager {
         this.cameraChanged = false;
         this.controlsChanged = false;
 
-        
-         // Always raycast every frame for more stable results
-    this.hotspots.forEach((hotspot) => {
-        // Get world position
-        const worldPosition = new THREE.Vector3();
-        hotspot.mesh.getWorldPosition(worldPosition);
 
-        // Project to screen coordinates
-        const screenPosition = worldPosition.clone().project(this.camera);
-        const isBehindCamera = screenPosition.z > 1;
-        const isInView = screenPosition.x >= -1 && screenPosition.x <= 1 &&
-                         screenPosition.y >= -1 && screenPosition.y <= 1;
+        // Always raycast every frame for more stable results
+        this.hotspots.forEach((hotspot) => {
+            // Get world position
+            const worldPosition = new THREE.Vector3();
+            hotspot.mesh.getWorldPosition(worldPosition);
 
-        const x = (screenPosition.x + 1) * window.innerWidth / 2;
-        const y = (-screenPosition.y + 1) * window.innerHeight / 2;
+            // Project to screen coordinates
+            const screenPosition = worldPosition.clone().project(this.camera);
+            const isBehindCamera = screenPosition.z > 1;
+            const isInView = screenPosition.x >= -1 && screenPosition.x <= 1 &&
+                screenPosition.y >= -1 && screenPosition.y <= 1;
 
-        // Raycast to detect occlusion
-        const direction = worldPosition.clone().sub(this.camera.position).normalize();
-        this.raycaster.set(this.camera.position, direction);
-        const intersects = this.raycaster.intersectObjects(this.interactiveMeshes, true);
-        const distanceToHotspot = this.camera.position.distanceTo(worldPosition);
-        const isOccluded = intersects.length > 0 && intersects[0].distance + 0.001 < distanceToHotspot;
+            const x = (screenPosition.x + 1) * window.innerWidth / 2;
+            const y = (-screenPosition.y + 1) * window.innerHeight / 2;
 
-        // Update visibility using opacity transition
-        const shouldShow = !(isBehindCamera || !isInView || isOccluded);
-        hotspot.element.style.opacity = shouldShow ? '1' : '0';
-        hotspot.element.style.pointerEvents = shouldShow ? 'auto' : 'none';
+            // Raycast to detect occlusion
+            //Increase the Tolerance to be less senstive, show less hidden callouts
 
-        // Position updates
-        hotspot.element.style.left = `${x}px`;
-        hotspot.element.style.top = `${y}px`;
+            const direction = worldPosition.clone().sub(this.camera.position).normalize();
+            this.raycaster.set(this.camera.position, direction);
+            const intersects = this.raycaster.intersectObjects(this.interactiveMeshes, true);
+            const distanceToHotspot = this.camera.position.distanceTo(worldPosition);
+            const isOccluded = intersects.length > 0 && intersects[0].distance + 0.1 < distanceToHotspot;
+            //Increase the Tolerance to be less senstive, show less hidden callouts
 
-        // Handle info panel
-        const showInfo = shouldShow && (hotspot === this.selectedHotspot || hotspot.element.matches(':hover'));
-        hotspot.info.style.opacity = showInfo ? '1' : '0';
-        hotspot.info.style.pointerEvents = showInfo ? 'auto' : 'none';
+            // Update visibility using opacity transition
+            const shouldShow = !(isBehindCamera || !isInView || isOccluded);
+            hotspot.element.style.opacity = shouldShow ? '1' : '0';
+            hotspot.element.style.pointerEvents = shouldShow ? 'auto' : 'none';
+
+            // Position updates
+            hotspot.element.style.left = `${x}px`;
+            hotspot.element.style.top = `${y}px`;
+
+            // Handle info panel
+            // Handle info panel (never for animation hotspots)
+            if (hotspot.data.type === 'animation') {
+                hotspot.info.style.display = 'none';
+            } else {
+                const showInfo = shouldShow && (hotspot === this.selectedHotspot || hotspot.element.matches(':hover'));
+                hotspot.info.style.display = showInfo ? 'block' : 'none';
+            }
+
 
 
             function isMobileView() {
@@ -1202,9 +1371,9 @@ class HotspotManager {
         button.addEventListener('click', () => {
             // Replace with the path to your PDF
             const pdfUrl = 'media/Commander Loader C15i Manual.pdf';
-            
+
             // Open in a new tab
-            window.open(pdfUrl, '_blank'); 
+            window.open(pdfUrl, '_blank');
         });
         // button.addEventListener('mouseenter', () => {
         //     icon.src = 'media/PDF_active.svg';
@@ -1275,9 +1444,9 @@ class HotspotManager {
         const modal = document.getElementById('specModal');
         const content = document.getElementById('specContent');
         const closeIcon = document.getElementById('closeSpecIcon');
-    
+
         let isVisible = false;
-    
+
         // Recursive renderer for nested spec objects
         const renderSpecs = (obj, container, level = 0) => {
             for (const [key, value] of Object.entries(obj)) {
@@ -1287,58 +1456,58 @@ class HotspotManager {
                     section.className = 'spec-section';
                     section.textContent = key;
                     container.appendChild(section);
-        
+
                     value.forEach(line => {
                         const item = document.createElement('div');
                         item.className = 'spec-item';
-        
+
                         const val = document.createElement('span');
                         val.className = 'spec-value';
                         val.textContent = line;
-        
+
                         item.appendChild(val);
                         container.appendChild(item);
                     });
-        
-                // Handle nested objects (like Models > Standard)
+
+                    // Handle nested objects (like Models > Standard)
                 } else if (typeof value === 'object' && value !== null) {
                     const section = document.createElement(level === 0 ? 'h2' : 'h3');
                     section.className = 'spec-section';
                     section.textContent = key;
                     container.appendChild(section);
-        
+
                     renderSpecs(value, container, level + 1);
-        
-                // Handle single key-value entries
+
+                    // Handle single key-value entries
                 } else {
                     const item = document.createElement('div');
                     item.className = 'spec-item';
-        
+
                     const label = document.createElement('span');
                     label.className = 'spec-label';
                     label.textContent = `${key}: `;
-        
+
                     const val = document.createElement('span');
                     val.className = 'spec-value';
                     val.textContent = value;
-        
+
                     item.appendChild(label);
                     item.appendChild(val);
                     container.appendChild(item);
                 }
             }
         };
-        
-    
+
+
         const showSpecs = async () => {
             try {
                 const response = await fetch('specs.json');
                 if (!response.ok) throw new Error('Failed to load specs.json');
-    
+
                 const specs = await response.json();
                 content.innerHTML = '';
                 renderSpecs(specs, content);
-    
+
                 modal.style.display = 'block';
                 icon.src = 'media/Spec_active.svg';
                 isVisible = true;
@@ -1350,13 +1519,13 @@ class HotspotManager {
                 console.error(err);
             }
         };
-    
+
         const hideSpecs = () => {
             modal.style.display = 'none';
             icon.src = 'media/Spec_default.svg';
             isVisible = false;
         };
-    
+
         button.addEventListener('click', () => {
             if (isVisible) {
                 hideSpecs();
@@ -1364,23 +1533,23 @@ class HotspotManager {
                 showSpecs();
             }
         });
-    
+
         closeIcon.addEventListener('click', hideSpecs);
-    
+
         button.addEventListener('mouseenter', () => {
             if (!isVisible) icon.src = 'media/Spec_active.svg';
         });
-    
+
         button.addEventListener('mouseleave', () => {
             if (!isVisible) icon.src = 'media/Spec_default.svg';
         });
     }
-    
+
 
 
     animate() {
         // Disable shadow and tone mapping on mobile for performance
-        
+
         // Pause rendering when page is hidden
         if (document.hidden) return;
         requestAnimationFrame(this.animate.bind(this));
@@ -1408,6 +1577,11 @@ class HotspotManager {
         //this.renderer.render(this.scene, this.camera);
         this.composer.render();
         this.stats.update();
+        //log render infno
+        if (!this.hasLoggedRendererInfo) {
+            console.log('📊 Final Renderer Info:', this.renderer.info);
+            this.hasLoggedRendererInfo = true;
+        }
     }
 
     animateOutlineEdgeStrength(start, end, duration, onComplete) {

@@ -63,6 +63,7 @@ canvas {
     transition: transform 0.3s ease;
     z-index: 1000;
     pointer-events: auto;
+    
 }
 
 .hotspot:hover {
@@ -93,6 +94,7 @@ canvas {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    user-select: none;
     
 }
 
@@ -651,14 +653,14 @@ canvas {
 
 #mouse-control {
     position: fixed;
-    right: 24px;
-    top: 100px;
+    top: 60px;
     left: 50%;
-    transform: translateY(-50%);
+    transform: translate(-50%, 0);
     width: 100px;
     height: 90px;
     z-index: 1000;
     cursor: pointer;
     opacity: 0.75;
     transition: opacity 0.2s;
+    user-select: none;
 }
