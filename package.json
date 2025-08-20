@@ -8,12 +8,13 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "vite": "7.0.0",
-    "rollup": "3.29.4"
+    "rollup": "3.29.4",
+    "terser": "^5.43.1",
+    "vite": "7.0.0"
   },
   "dependencies": {
-    "three": "^0.167.1",
-    "postprocessing": "^6.37.6"
+    "postprocessing": "^6.37.6",
+    "three": "^0.167.1"
   },
   "engines": {
     "node": "20"
