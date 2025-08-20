@@ -4,7 +4,6 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-//import { Mesh } from 'three';
 import { WebGLRenderer } from "three";
 import { SRGBColorSpace } from 'three';
 import { EffectComposer, RenderPass, EffectPass, OutlineEffect, BlendFunction, SMAAEffect } from 'postprocessing';
@@ -15,17 +14,6 @@ function isMobile() {
 }
 
 const IS_MOBILE = isMobile();
-window.addEventListener('error', (e) => {
-    console.error('💥 CRASH DETECTED:', e.message);
-    alert('CRASH: ' + e.message + ' at line ' + e.lineno);
-});
-
-window.addEventListener('unhandledrejection', (e) => {
-    console.error('💥 PROMISE CRASH:', e.reason);
-    alert('PROMISE ERROR: ' + e.reason);
-});
-//force rebuild
-console.log('App loaded:', new Date().toISOString());
 class HotspotManager {
     constructor() {
         this.init();
@@ -39,28 +27,21 @@ class HotspotManager {
         this.currentHotspotIndex = 0;
         this.visitedHotspots = new Set();
         this.isAnimating = false;
-        this.needsUpdate = false;
-        this.frameCount = 0;
+        
         // Performance settings
         this.LOD_DISTANCE = 10;
         this.CULL_DISTANCE = 50;
         this.targetFPS = 60;
+        
         // Raycast optimization
         this.raycastThrottle = 0;
-        this.raycastInterval = 3; // Only raycast every 3 frames
+        this.raycastInterval = IS_MOBILE ? 5 : 3; // Less frequent raycasting on mobile
         this.lastRaycastResults = new Map();
-        this.raycastCache = new Map();
-        this.cacheTimeout = 500; // Cache results for 500ms
-
-        // Frustum culling
-        this.frustum = new THREE.Frustum();
-        this.cameraMatrix = new THREE.Matrix4();
 
         // Object pooling for raycaster
         this.raycaster = new THREE.Raycaster();
         this.tempVector = new THREE.Vector3();
         this.tempVector2 = new THREE.Vector3();
-        this.tempMatrix = new THREE.Matrix4();
 
         // Track camera/controls changes for hotspot update
         this.cameraChanged = true;
@@ -68,12 +49,9 @@ class HotspotManager {
         this.lastCameraPosition = new THREE.Vector3();
         this.lastCameraQuaternion = new THREE.Quaternion();
 
-        this.hasLoggedRendererInfo = false;
-
     }
 
     async init() {
-        console.log('Initializing...');
         // Create scene
         this.scene = new THREE.Scene();
         this.clock = new THREE.Clock();
@@ -90,21 +68,14 @@ class HotspotManager {
             //this.scene.background = new THREE.Color(0xf0f0f0);
         });
 
-        // const bgLoader = new THREE.TextureLoader();
-        // bgLoader.load('media/model/GradientBackground_2.png', (bgTexture) => {
-        //     // Set filtering for background texture
-        //     if (bgTexture.minFilter !== undefined) bgTexture.minFilter = THREE.LinearMipmapLinearFilter;
-        //     if (bgTexture.magFilter !== undefined) bgTexture.magFilter = THREE.LinearFilter;
-        //     bgTexture.needsUpdate = true;
-        //     this.scene.background = bgTexture; // ✅ visible background
-        // });
+        // Create gradient background
         const gradientCanvas = document.createElement('canvas');
         gradientCanvas.width = 1;
         gradientCanvas.height = 256;
         const ctx = gradientCanvas.getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, 256);
-        gradient.addColorStop(0, '#7C7C7C'); // bottom - white
-        gradient.addColorStop(1, '#ffffff'); // top - light grey
+        gradient.addColorStop(0, '#7C7C7C');
+        gradient.addColorStop(1, '#ffffff');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, 1, 256);
         const gradientTexture = new THREE.CanvasTexture(gradientCanvas);
@@ -114,20 +85,17 @@ class HotspotManager {
         this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera.position.set(0, 0, 0);
         this.camera.lookAt(0, 0, 0);
-        //this.camera.setFocalLength(50);
 
-
-        // Create renderer
+        // Create renderer with mobile optimizations
         this.renderer = new WebGLRenderer({
-            powerPreference: "high-performance",
-            antialias: window.devicePixelRatio <= 1,
+            powerPreference: IS_MOBILE ? "low-power" : "high-performance",
+            antialias: !IS_MOBILE && window.devicePixelRatio <= 1,
             stencil: false,
             depth: true,
             alpha: false,
-            //preserveDrawingBuffer: false
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setPixelRatio(1);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, IS_MOBILE ? 1 : 2));
         this.renderer.outputEncoding = SRGBColorSpace;
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -158,63 +126,58 @@ class HotspotManager {
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
         this.scene.add(ambientLight);
 
+        // Setup shadows with mobile optimization
         const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
         directionalLight.position.set(0, 10, 0);
-        directionalLight.intensity = 1; // more shadow strength
-        directionalLight.castShadow = true;
+        directionalLight.intensity = 1;
+        directionalLight.castShadow = !IS_MOBILE; // Disable shadows on mobile
 
-        // Add these shadow properties
-        directionalLight.shadow.mapSize.width = 512;
-        directionalLight.shadow.mapSize.height = 512;
-        directionalLight.shadow.radius = 4;
-        directionalLight.shadow.bias = -0.001;
-        directionalLight.shadow.camera.near = 0.5;
-        directionalLight.shadow.camera.far = 100;
-        directionalLight.shadow.camera.left = -25;
-        directionalLight.shadow.camera.right = 25;
-        directionalLight.shadow.camera.top = 25;
-        directionalLight.shadow.camera.bottom = -25;
-        directionalLight.shadow.normalBias = 0.02;
+        if (!IS_MOBILE) {
+            directionalLight.shadow.mapSize.width = 512;
+            directionalLight.shadow.mapSize.height = 512;
+            directionalLight.shadow.radius = 4;
+            directionalLight.shadow.bias = -0.001;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 100;
+            directionalLight.shadow.camera.left = -25;
+            directionalLight.shadow.camera.right = 25;
+            directionalLight.shadow.camera.top = 25;
+            directionalLight.shadow.camera.bottom = -25;
+            directionalLight.shadow.normalBias = 0.02;
+        }
         this.scene.add(directionalLight);
-        //composer
-        // Setup composer only if not mobile
+
+        // Setup composer with mobile-specific optimizations
         this.composer = new EffectComposer(this.renderer);
         this.composer.addPass(new RenderPass(this.scene, this.camera));
-        // Postprocessing passes
 
-        // Create OutlineEffect
-        this.outlineEffect = new OutlineEffect(this.scene, this.camera, {
-            selection: [],
-            blendFunction: BlendFunction.ALPHA,
-            edgeStrength: 1,
-            pulseSpeed: 0.0,
-            visibleEdgeColor: new THREE.Color('#2873F5'), // Start transparent
-            multisampling: 4,
-            // resolution: {
-            //     // width: window.innerWidth * Math.min(window.devicePixelRatio, 2),
-            //     // height: window.innerHeight * Math.min(window.devicePixelRatio, 2)
-            // },
-            resolution: { width: window.innerWidth / 2, height: window.innerHeight / 2 },
+        // Only add post-processing effects on desktop
+        if (!IS_MOBILE) {
+            this.outlineEffect = new OutlineEffect(this.scene, this.camera, {
+                selection: [],
+                blendFunction: BlendFunction.ALPHA,
+                edgeStrength: 1,
+                pulseSpeed: 0.0,
+                visibleEdgeColor: new THREE.Color('#2873F5'),
+                multisampling: 2, // Reduced for performance
+                resolution: { width: window.innerWidth / 2, height: window.innerHeight / 2 },
+                xRay: false,
+                patternTexture: null,
+                kernelSize: 1,
+                blur: true,
+                edgeGlow: 0.0,
+                usePatternTexture: false
+            });
+            
+            // Add SMAA effect for anti-aliasing
+            const smaaEffect = new SMAAEffect();
+            const effectPass = new EffectPass(this.camera, this.outlineEffect, smaaEffect);
+            effectPass.renderToScreen = true;
+            this.composer.addPass(effectPass);
+        }
 
-            xRay: false,
-            // Edge detection settings
-            patternTexture: null,
-            kernelSize: 1,
-            blur: true,
-            edgeGlow: 0.0,
-            usePatternTexture: false
-        });
-        //SMAA
-        const smaaEffect = new SMAAEffect();
-        // Create effect pass with both outline and SMAA
-        const effectPass = new EffectPass(this.camera, this.outlineEffect, smaaEffect);
-        effectPass.renderToScreen = true;
-
-        //add effect pass to composer
-        this.composer.addPass(effectPass);
-
-        // Add floor disc
-        const floorGeometry = new THREE.CircleGeometry(30, 48);
+        // Add floor disc with mobile optimization
+        const floorGeometry = new THREE.CircleGeometry(30, IS_MOBILE ? 24 : 48); // Fewer segments on mobile
         const floorMaterial = new THREE.MeshStandardMaterial({
             color: 0xbbbbbb,
             transparent: true,
@@ -224,11 +187,11 @@ class HotspotManager {
             side: THREE.DoubleSide
         });
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2; // Rotate to be horizontal
-        floor.position.y = -7.8; // Position lower below the model
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -7.8;
         floor.position.z = 0;
         floor.position.x = 0;
-        floor.receiveShadow = true;
+        floor.receiveShadow = !IS_MOBILE; // Disable shadow receiving on mobile
         this.scene.add(floor);
 
         // Add controls
@@ -266,9 +229,7 @@ class HotspotManager {
 
         try {
             // Load model and hotspots
-            console.log('Loading model...');
             await this.loadModel();
-            console.log('Model loaded successfully');
         } catch (error) {
             console.error('Error during initialization:', error);
             document.getElementById('loadingScreen').innerHTML = `
@@ -1214,34 +1175,7 @@ class HotspotManager {
         }
     }
 
-    // moveCameraTo(positionArray, quaternionArray) {
-    //     const startPos = this.camera.position.clone();
-    //     const startQuat = this.camera.quaternion.clone();
 
-    //     const targetPos = new THREE.Vector3().fromArray(positionArray);
-    //     const targetQuat = new THREE.Quaternion().fromArray(quaternionArray);
-
-    //     const startTarget = this.controls.target.clone();
-    //     const endTarget = new THREE.Vector3(0, 0, -1).applyQuaternion(targetQuat).add(targetPos);
-
-    //     const duration = 1000;
-    //     const startTime = Date.now();
-
-    //     const animate = () => {
-    //         const elapsed = Date.now() - startTime;
-    //         const t = Math.min(elapsed / duration, 1);
-    //         const ease = 1 - Math.pow(1 - t, 4);
-
-    //         this.camera.position.lerpVectors(startPos, targetPos, ease);
-    //         this.camera.quaternion.slerpQuaternions(startQuat, targetQuat, ease);
-    //         this.controls.target.lerpVectors(startTarget, endTarget, ease);
-    //         this.controls.update();
-
-    //         if (t < 1) requestAnimationFrame(animate);
-    //     };
-
-    //     animate();
-    // }
 
     updateHotspotPositions() {
         if (!this.hotspots) return;
@@ -1278,54 +1212,73 @@ class HotspotManager {
             const x = (screenPosition.x + 1) * window.innerWidth / 2;
             const y = (-screenPosition.y + 1) * window.innerHeight / 2;
 
-            // Raycast to detect occlusion
-            //Increase the Tolerance to be less senstive, show less hidden callouts
-
-            const direction = worldPosition.clone().sub(this.camera.position).normalize();
-            this.raycaster.set(this.camera.position, direction);
-            const intersects = this.raycaster.intersectObjects(this.interactiveMeshes, true);
-            const distanceToHotspot = this.camera.position.distanceTo(worldPosition);
-            const isOccluded = intersects.length > 0 && intersects[0].distance + 0.1 < distanceToHotspot;
-            //Increase the Tolerance to be less senstive, show less hidden callouts
+            // Optimize raycast operations - use throttling for better performance
+            let isOccluded = false;
+            this.raycastThrottle++;
+            if (this.raycastThrottle >= this.raycastInterval) {
+                this.raycastThrottle = 0;
+                
+                // Reuse temp vector to avoid allocations
+                this.tempVector.copy(worldPosition).sub(this.camera.position).normalize();
+                this.raycaster.set(this.camera.position, this.tempVector);
+                const intersects = this.raycaster.intersectObjects(this.interactiveMeshes, true);
+                const distanceToHotspot = this.camera.position.distanceTo(worldPosition);
+                isOccluded = intersects.length > 0 && intersects[0].distance + 0.1 < distanceToHotspot;
+                
+                // Cache result
+                this.lastRaycastResults.set(hotspot, isOccluded);
+            } else {
+                // Use cached result
+                isOccluded = this.lastRaycastResults.get(hotspot) || false;
+            }
 
             // Update visibility using opacity transition
             const shouldShow = !(isBehindCamera || !isInView || isOccluded);
-            hotspot.element.style.opacity = shouldShow ? '1' : '0';
-            hotspot.element.style.pointerEvents = shouldShow ? 'auto' : 'none';
+            
+            // Batch style updates to reduce layout thrashing
+            if (hotspot.element.style.opacity !== (shouldShow ? '1' : '0')) {
+                hotspot.element.style.opacity = shouldShow ? '1' : '0';
+                hotspot.element.style.pointerEvents = shouldShow ? 'auto' : 'none';
+            }
 
-            // Position updates
-            hotspot.element.style.left = `${x}px`;
-            hotspot.element.style.top = `${y}px`;
+            // Position updates only if changed
+            const newLeft = `${x}px`;
+            const newTop = `${y}px`;
+            if (hotspot.element.style.left !== newLeft) hotspot.element.style.left = newLeft;
+            if (hotspot.element.style.top !== newTop) hotspot.element.style.top = newTop;
 
-            // Handle info panel
             // Handle info panel (never for animation hotspots)
             if (hotspot.data.type === 'animation') {
-                hotspot.info.style.display = 'none';
-            } else {
-                const showInfo = shouldShow && (hotspot === this.selectedHotspot || hotspot.element.matches(':hover'));
-                hotspot.info.style.display = showInfo ? 'block' : 'none';
-            }
-
-
-
-            function isMobileView() {
-                return window.innerWidth < 600 || window.innerHeight < 400;
-            }
-
-            if (isMobileView()) {
-                if (hotspot === this.selectedHotspot) {
-                    hotspot.info.classList.add('mobile-fixed');
-                    hotspot.info.style.left = '';
-                    hotspot.info.style.top = '';
-                } else {
-                    hotspot.info.classList.remove('mobile-fixed');
-                    if (hotspot.info.style.left !== `${x + 20}px`) hotspot.info.style.left = `${x + 20}px`;
-                    if (hotspot.info.style.top !== `${y}px`) hotspot.info.style.top = `${y}px`;
+                if (hotspot.info.style.display !== 'none') {
+                    hotspot.info.style.display = 'none';
                 }
             } else {
-                hotspot.info.classList.remove('mobile-fixed');
-                if (hotspot.info.style.left !== `${x + 20}px`) hotspot.info.style.left = `${x + 20}px`;
-                if (hotspot.info.style.top !== `${y}px`) hotspot.info.style.top = `${y}px`;
+                const showInfo = shouldShow && (hotspot === this.selectedHotspot || hotspot.element.matches(':hover'));
+                const newDisplay = showInfo ? 'block' : 'none';
+                if (hotspot.info.style.display !== newDisplay) {
+                    hotspot.info.style.display = newDisplay;
+                }
+                
+                // Mobile-specific info positioning
+                if (IS_MOBILE) {
+                    if (hotspot === this.selectedHotspot) {
+                        hotspot.info.classList.add('mobile-fixed');
+                        hotspot.info.style.left = '';
+                        hotspot.info.style.top = '';
+                    } else {
+                        hotspot.info.classList.remove('mobile-fixed');
+                        const infoLeft = `${x + 20}px`;
+                        const infoTop = `${y}px`;
+                        if (hotspot.info.style.left !== infoLeft) hotspot.info.style.left = infoLeft;
+                        if (hotspot.info.style.top !== infoTop) hotspot.info.style.top = infoTop;
+                    }
+                } else {
+                    hotspot.info.classList.remove('mobile-fixed');
+                    const infoLeft = `${x + 20}px`;
+                    const infoTop = `${y}px`;
+                    if (hotspot.info.style.left !== infoLeft) hotspot.info.style.left = infoLeft;
+                    if (hotspot.info.style.top !== infoTop) hotspot.info.style.top = infoTop;
+                }
             }
         });
     }
@@ -1334,22 +1287,19 @@ class HotspotManager {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
 
-        const pixelRatio = Math.min(window.devicePixelRatio, 2);
+        const pixelRatio = Math.min(window.devicePixelRatio, IS_MOBILE ? 1 : 2);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setPixelRatio(1); // or just 1.0 for testing
-
+        this.renderer.setPixelRatio(pixelRatio);
 
         // Update composer
         this.composer.setSize(window.innerWidth, window.innerHeight);
-        //this.composer.setPixelRatio(pixelRatio); // This line was causing the error
 
-        // Update outline effect resolution with proper scaling
+        // Update outline effect resolution with mobile optimization
         if (this.outlineEffect && this.outlineEffect.resolution) {
-            this.outlineEffect.resolution.width = window.innerWidth * pixelRatio;
-            this.outlineEffect.resolution.height = window.innerHeight * pixelRatio;
-
-            // Force update of internal render targets
-            this.outlineEffect.setSize(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
+            const scale = IS_MOBILE ? 0.5 : 1; // Lower resolution on mobile
+            this.outlineEffect.resolution.width = window.innerWidth * scale;
+            this.outlineEffect.resolution.height = window.innerHeight * scale;
+            this.outlineEffect.setSize(window.innerWidth * scale, window.innerHeight * scale);
         }
     }
 
@@ -1547,10 +1497,9 @@ class HotspotManager {
 
 
     animate() {
-        // Disable shadow and tone mapping on mobile for performance
-
-        // Pause rendering when page is hidden
+        // Pause rendering when page is hidden for performance
         if (document.hidden) return;
+        
         requestAnimationFrame(this.animate.bind(this));
         this.controls.update();
 
@@ -1567,20 +1516,14 @@ class HotspotManager {
             this.mixer.update(delta);
         }
 
-        //Render using composer (postprocessing effects) if not mobile
-        // if (!IS_MOBILE && this.composer) {
-        //     this.composer.render();
-        // } else {
-        //     this.renderer.render(this.scene, this.camera);
-        // }
-        //this.renderer.render(this.scene, this.camera);
-        this.composer.render();
-        this.stats.update();
-        //log render infno
-        if (!this.hasLoggedRendererInfo) {
-            console.log('📊 Final Renderer Info:', this.renderer.info);
-            this.hasLoggedRendererInfo = true;
+        // Use mobile-optimized rendering
+        if (IS_MOBILE) {
+            this.renderer.render(this.scene, this.camera);
+        } else {
+            this.composer.render();
         }
+        
+        this.stats.update();
     }
 
     animateOutlineEdgeStrength(start, end, duration, onComplete) {
