@@ -118,13 +118,7 @@
     "type": "callout",
     "description": "Access panel for the aft cargo door operation control (exterior search)"
   },
-  {
-    "node": "18_CargoDoorLatchAft",
-    "title": "Cargo Door Latch Aft",
-    "camera": "Cam_18_CargoDoorLatchAft",
-    "type": "callout",
-    "description": "Used to seal the door after closing and vent the door before opening"
-  },
+
   {
     "node": "19_AftCargoDoor",
     "title": "Aft Cargo Door",
@@ -154,11 +148,11 @@
     "description": "Potable water access panel (exterior search only)"
   },
   {
-    "node": "23_GPUAccessPanelAuxilary",
-    "title": "GPU Access Panel Auxilary",
-    "camera": "Cam_23_GPUAccessPanelAuxilary",
+    "node": "23_PneumaticAirstartPanels",
+    "title": "Pneumatic Airstart Panels",
+    "camera": "Cam_23_PneumaticAirstartPanels",
     "type": "callout",
-    "description": "Aircraft maintenance required to acceess this panel"
+    "description": "Access panel to connect the Pneumatic airstart (exterior search)"
   },
   {
     "node": "24_PCAirAccessPanel",
@@ -174,7 +168,13 @@
     "type": "callout",
     "description": "Beacon indicates the aircraft is moving or movement is eminent. Also means that the engines are running or about to start."
   },
- 
+  {
+    "node": "26_BulkPitCargoDoorHandle",
+    "title": "Bulk Pit Cargo Door Handle",
+    "camera": "Cam_26_BulkPitCargoDoorHandle",
+    "type": "callout",
+    "description": "Used to open and close the door of the bulk pit"
+  },
   {
     "node": "27_BulkPitCargoDoor",
     "title": "Bulk Pit Cargo Door",
@@ -225,11 +225,6 @@
     "description": "Access panel for connections to GPU, flight deck call button and communication headset. Interphone jack is located on the reverse side of nose gear."
   },
   {
-    "node": "06_CargoHandlingSystemControlAccessPanelForward_open",
-    "camera": "Cam_06_CargoHandlingSystemControlAccessPanelForward",
-    "type": "animation"
-  },
-  {
     "node": "07_ForwardCargoDoorControlAccessPanel_open",
     "camera": "Cam_07_ForwardCargoDoorControlAccessPanel",
     "type": "animation"
@@ -237,11 +232,6 @@
   {
     "node": "09_ForwardCargoDoor_open",
     "camera": "Cam_09_ForwardCargoDoor",
-    "type": "animation"
-  },
-  {
-    "node": "16_CargoHandlingSystemControlAccessPanelAft_open",
-    "camera": "Cam_16_CargoHandlingSystemControlAccessPanelAft_open",
     "type": "animation"
   },
   {

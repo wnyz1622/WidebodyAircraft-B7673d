@@ -170,10 +170,10 @@ class HotspotManager {
         directionalLight.shadow.bias = -0.001;
         directionalLight.shadow.camera.near = 0.5;
         directionalLight.shadow.camera.far = 100;
-        directionalLight.shadow.camera.left = -30;
-        directionalLight.shadow.camera.right = 30;
-        directionalLight.shadow.camera.top = 30;
-        directionalLight.shadow.camera.bottom = -30;
+        directionalLight.shadow.camera.left = -80;
+        directionalLight.shadow.camera.right = 80;
+        directionalLight.shadow.camera.top = 80;
+        directionalLight.shadow.camera.bottom = -80;
         directionalLight.shadow.normalBias = 0.02;
         this.scene.add(directionalLight);
         //composer
@@ -226,7 +226,7 @@ class HotspotManager {
         });
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
         floor.rotation.x = -Math.PI / 2; // Rotate to be horizontal
-        floor.position.y = -8.5; // Position lower below the model
+        floor.position.y = -7.8; // Position lower below the model
         floor.position.z = 0;
         floor.position.x = 0;
         floor.receiveShadow = true;
@@ -250,11 +250,11 @@ class HotspotManager {
         // this.controls.minAzimuthAngle = -Math.PI; // Allow full 360 rotation
         //this.controls.maxAzimuthAngle = Math.PI;
         this.controls.enablePan = true; // Disable panning to keep focus on the model
-        this.controls.target.y = -8.5; // Keep the orbit target at floor level
+        this.controls.target.y = -7.8; // Keep the orbit target at floor level
         // Keep target from going below floor
         this.controls.addEventListener('change', () => {
-            if (this.controls.target.y < -8.5) {
-                this.controls.target.y = -8.5;
+            if (this.controls.target.y < -7.8) {
+                this.controls.target.y = -7.8;
             }
         });
         // Track camera/controls changes for hotspot update
@@ -356,7 +356,7 @@ class HotspotManager {
             };
 
 
-            const modelPath = 'media/model/B787_v1.glb';
+            const modelPath = 'media/model/B767_v2.glb';
             console.log('Loading model from:', modelPath);
 
             // this.loader.load(modelPath, (gltf) => {
